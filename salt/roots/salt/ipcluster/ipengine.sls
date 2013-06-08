@@ -15,3 +15,13 @@ scipy-stack-packages:
         - require:
             - pkg: supervisor
             - pkg: ipython
+
+ipengine-process:
+    service:
+        - names:
+            - supervisor
+        - running
+        - require:
+            - pkg: supervisor
+        - watch:
+            - file: /etc/supervisor/conf.d/ipengine.conf
