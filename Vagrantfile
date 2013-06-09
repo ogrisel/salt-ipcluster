@@ -14,5 +14,8 @@ Vagrant.configure("2") do |config|
     ## Installs our example formula in "salt/roots/salt"
     salt.run_highstate = true
 
+    ## Display salt highstate output
+    salt.verbose = true
+
   end
 end
