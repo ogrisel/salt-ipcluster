@@ -1,3 +1,7 @@
+ipcluster-user:
+    user.present:
+        - name: {{ pillar.get('ipcluster.username', 'ipuser') }}
+
 # Common packages to install on each node of the cluster
 ipcluster-packages:
     pkg:
@@ -5,6 +9,7 @@ ipcluster-packages:
         - names:
             - ipython
             - supervisor
+            - python-psutil
 
 /etc/supervisor/supervisor.conf:
     file:

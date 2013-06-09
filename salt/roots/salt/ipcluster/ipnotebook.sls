@@ -3,9 +3,9 @@ ipython-notebook:
         - installed
 
 /etc/supervisor/conf.d/ipnotebook.conf:
-    file:
-        - managed
+    file.managed:
         - source: salt://ipcluster/etc/supervisor/conf.d/ipnotebook.conf
+        - template: jinja
         - user: root
         - group: root
         - require:
@@ -20,5 +20,7 @@ ipython-notebook-process:
         - running
         - require:
             - pkg: supervisor
+            - user: {{ pillar.get('ipcluster.username', 'ipuser') }}
         - watch:
+            - file: /etc/supervisor/supervisor.conf
             - file: /etc/supervisor/conf.d/ipnotebook.conf

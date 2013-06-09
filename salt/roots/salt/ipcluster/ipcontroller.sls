@@ -1,13 +1,12 @@
 /etc/supervisor/conf.d/ipcontroller.conf:
-    file:
-        - managed
+    file.managed:
         - source: salt://ipcluster/etc/supervisor/conf.d/ipcontroller.conf
+        - template: jinja
         - user: root
         - group: root
         - require:
             - pkg: supervisor
             - pkg: ipython
-
 
 ipcontroller-process:
     service:
@@ -16,5 +15,6 @@ ipcontroller-process:
         - running
         - require:
             - pkg: supervisor
+            - user: {{ pillar.get('ipcluster.username', 'ipuser') }}
         - watch:
             - file: /etc/supervisor/conf.d/ipcontroller.conf
