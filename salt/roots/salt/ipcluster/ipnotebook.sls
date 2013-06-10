@@ -22,5 +22,5 @@ ipython-notebook-process:
             - pkg: supervisor
             - user: {{ pillar.get('ipcluster.username', 'ipuser') }}
         - watch:
-            - file: /etc/supervisor/supervisor.conf
+            - file: /etc/supervisor/supervisord.conf
             - file: /etc/supervisor/conf.d/ipnotebook.conf
