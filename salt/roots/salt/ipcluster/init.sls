@@ -11,10 +11,10 @@ ipcluster-packages:
             - supervisor
             - python-psutil
 
-/etc/supervisor/supervisor.conf:
+/etc/supervisor/supervisord.conf:
     file:
         - managed
-        - source: salt://ipcluster/etc/supervisor/supervisor.conf
+        - source: salt://ipcluster/etc/supervisor/supervisord.conf
         - user: root
         - group: root
         - require:
