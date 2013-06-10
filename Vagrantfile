@@ -5,6 +5,10 @@ Vagrant.configure("2") do |config|
   ## For masterless, mount your file roots file root
   config.vm.synced_folder "salt/roots/", "/srv/"
 
+  ## Forward the default IPython notebook port on the guest
+  ## to the host
+  config.vm.network :forwarded_port, guest: 8888, host: 8888
+
   ## Set your salt configs here
   config.vm.provision :salt do |salt|
 
