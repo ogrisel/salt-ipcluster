@@ -3,6 +3,8 @@ base:
     - scipy
     - ipcluster
     - ipcluster.ipcontroller
-    - ipcluster.ipengine
     - ipcluster.ipnotebook
+
+# For the remote worker node
+#    - ipcluster.ipengine
 
