@@ -24,7 +24,7 @@
 ipcontroller:
     supervisord:
         - running
-        - name:
+        - names:
             - ipcontroller
             - ipengine
         - require:

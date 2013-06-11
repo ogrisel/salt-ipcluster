@@ -79,5 +79,3 @@ supervisor:
         - require:
             - file: /etc/supervisor/supervisord.conf
             - pkg: supervisor
-        - watch:
-            - file: /etc/supervisor/conf.d/*
