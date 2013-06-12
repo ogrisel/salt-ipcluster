@@ -8,6 +8,7 @@ ipcluster-user:
     user.present:
         - name: {{ ipython_user }}
         - home: {{ ipython_home }}
+        - shell: /bin/bash
 
 # Common packages to install on each node of the cluster
 
@@ -43,6 +44,7 @@ ipcluster-packages:
         - runas: {{ ipython_user }}
         - require:
             - file: {{ ipython_home }}
+            - pkg: python-virtualenv
 
 ipython:
     pip:
@@ -54,8 +56,10 @@ ipython:
         - bin_env: {{ ipython_home }}/venv
         - user: {{ ipython_user }}
         - require:
+            - pkg: build-essential
             - pkg: python-pip
             - pkg: libzmq-dev
+            - pkg: python-dev
             - virtualenv: {{ ipython_home }}/venv
 
 # TODO: if pillar has a requirement file, add it here
