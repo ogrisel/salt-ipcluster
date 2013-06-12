@@ -46,6 +46,12 @@ ipcluster-packages:
             - file: {{ ipython_home }}
             - pkg: python-virtualenv
 
+{{ ipython_home }}/.bashrc:
+    file.append:
+        # Convenience for debugging only: put the venv bin folder in the path
+        - text:
+            - export PATH=$HOME/venv/bin:$PATH
+
 ipython:
     pip:
         - installed
