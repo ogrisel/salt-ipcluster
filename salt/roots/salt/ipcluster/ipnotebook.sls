@@ -20,22 +20,25 @@
         - user: root
         - group: root
         - require:
-            - pkg: supervisor
-            - pip: ipython
+            - user: {{ ipython_user }}
+            - pip: ipcluster-venv-packages
 
 notebook-working-dir:
     file.directory:
         - name: {{ working_dir }}
         - user: {{ ipython_user }}
-        - mode: 755
+        - group: {{ ipython_user }}
         - makedirs: True
+        - require:
+            - user: {{ ipython_user }}
 
 ipnotebook:
     supervisord.running:
         - bin_env: {{ venv }}
+        - runas: {{ ipython_user }}
         - conf_file: {{ ipython_home }}/supervisor/supervisord.conf
         - require:
-            - pip: supervisor
+            - pip: ipcluster-venv-packages
             - user: {{ ipython_user }}
             - file: {{ working_dir }}
         - watch:

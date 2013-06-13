@@ -55,9 +55,8 @@ ipcluster-system-packages:
         - text:
             - export PATH={{ venv }}/bin:$PATH
 
-ipython:
-    pip:
-        - installed
+ipcluster-venv-packages:
+    pip.installed:
         - names:
 {% if not pillar.get('ipcluster.venv.packages') %}
             - ipython
@@ -84,15 +83,55 @@ ipython:
 # Main configuration file for the supervisor daemon that will be used
 # to manage the various ipython processes 
 
-{{ ipython_home }}/supervisor/conf.d:
+
+{{ ipython_home }}/supervisor:
     file.directory:
         - makedirs: True
+        - user: {{ ipython_user }}
+        - group: {{ ipython_user }}
+        - require:
+            - user: {{ ipython_user }}
+            - file: {{ ipython_home }}
+
+{{ ipython_home }}/supervisor/conf.d:
+    file.directory:
+        - user: {{ ipython_user }}
+        - group: {{ ipython_user }}
+        - require:
+            - user: {{ ipython_user }}
+            - file: {{ ipython_home }}/supervisor
 
 {{ ipython_home }}/supervisor/supervisord.conf:
     file.managed:
         - source: salt://ipcluster/etc/supervisor/supervisord.conf
+        - template: jinja
+        - context:
+            directory: {{ ipython_home }}/supervisor
         - user: {{ ipython_user }}
         - group: {{ ipython_user }}
-        - makedirs: True
         - require:
+            - user: {{ ipython_user }}
             - file: {{ ipython_home }}/supervisor/conf.d
+
+/etc/init.d/supervisor-ipcluster:
+    file.managed:
+        - source: salt://ipcluster/etc/init.d/supervisor-ipcluster
+        - template: jinja
+        - context:
+            venv: {{ venv }}
+            directory: {{ ipython_home }}/supervisor
+            conf_file: {{ ipython_home }}/supervisor/supervisord.conf
+        - user: root
+        - group: root
+        - mode: 755
+        - require:
+            - user: {{ ipython_user }}
+            - file: {{ ipython_home }}
+            - pip: ipcluster-venv-packages
+
+supervisor-ipcluster:
+    service.running:
+        - require:
+            - file: /etc/init.d/supervisor-ipcluster
+            - file: {{ ipython_home }}/supervisor/supervisord.conf
+            - pip: ipcluster-venv-packages
