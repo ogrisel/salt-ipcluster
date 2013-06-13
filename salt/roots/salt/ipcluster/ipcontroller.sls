@@ -2,14 +2,15 @@
 {% set ipython_home = pillar.get('ipcluster.userhome', '/home/ipuser') %}
 {% set working_dir = ipython_home + '/notebooks' %}
 {% set working_dir = pillar.get('ipcluster.engine.directory', working_dir) %}
+{% set venv = ipython_home + '/venv' %}
 
-/etc/supervisor/conf.d/ipcontroller.conf:
+{{ ipython_home }}/supervisor/conf.d/ipcontroller.conf:
     file.managed:
         - source: salt://ipcluster/etc/supervisor/conf.d/ipcontroller.conf
         - template: jinja
         - context:
-            ipcontroller: {{ ipython_home }}/venv/bin/ipcontroller
-            ipcluster: {{ ipython_home }}/venv/bin/ipcluster
+            ipcontroller: {{ venv }}/bin/ipcontroller
+            ipcluster: {{ venv }}/bin/ipcluster
             user: {{ ipython_user }}
             home: {{ ipython_home }}
             directory: {{ working_dir }}
@@ -28,15 +29,16 @@ ipcontroller-working-dir:
         - makedirs: True
 
 ipcontroller:
-    supervisord:
-        - running
+    supervisord.running:
+        - bin_env: {{ venv }}
+        - conf_file: {{ ipython_home }}/supervisor/supervisord.conf
         - names:
             - ipcontroller
             - ipengine
         - require:
-            - pkg: supervisor
+            - pip: supervisor
             - user: {{ ipython_user }}
             - file: {{ working_dir }}
         - watch:
-            - file: /etc/supervisor/supervisord.conf
-            - file: /etc/supervisor/conf.d/ipcontroller.conf
+            - file: {{ ipython_home }}/supervisor/supervisord.conf
+            - file: {{ ipython_home }}/supervisor/conf.d/ipcontroller.conf

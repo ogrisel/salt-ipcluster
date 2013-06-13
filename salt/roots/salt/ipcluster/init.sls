@@ -1,5 +1,6 @@
 {% set ipython_user = pillar.get('ipcluster.username', 'ipuser') %}
 {% set ipython_home = pillar.get('ipcluster.userhome', '/home/ipuser') %}
+{% set venv = ipython_home + '/venv' %}
 
 # User to own the ipython process and a virtual env for the user to be able to
 # install custom packages with pip / distribute
@@ -13,7 +14,7 @@ ipcluster-user:
 
 # Common packages to install on each node of the cluster
 
-ipcluster-packages:
+ipcluster-system-packages:
     pkg:
         - installed
         - names:
@@ -35,7 +36,7 @@ ipcluster-packages:
         - require:
             - user: {{ ipython_user }}
 
-{{ ipython_home }}/venv:
+{{ venv }}:
     virtualenv.managed:
         # Make it possible to reuse scipy from the OS packages as it is too
         # costly to build from source and requires many build dependencies as a
@@ -52,7 +53,7 @@ ipcluster-packages:
     file.append:
         # Convenience for debugging only: put the venv bin folder in the path
         - text:
-            - export PATH=$HOME/venv/bin:$PATH
+            - export PATH={{ venv }}/bin:$PATH
 
 ipython:
     pip:
@@ -64,11 +65,12 @@ ipython:
             - tornado
             - jinja2
             - msgpack-python
+            - supervisor
 {% endif %}
 {% for pip_pkg in pillar.get('ipcluster.venv.packages', ()) %}
             - {{ pip_pkg }}
 {% endfor %}
-        - bin_env: {{ ipython_home }}/venv
+        - bin_env: {{ venv }}
         - user: {{ ipython_user }}
         - require:
             - pkg: build-essential
@@ -76,39 +78,21 @@ ipython:
             - pkg: python-pip
             - pkg: libzmq-dev
             - pkg: python-dev
-            - virtualenv: {{ ipython_home }}/venv
+            - virtualenv: {{ venv }}
 
 
-# Main configuration file for the supervisor service that will be used
+# Main configuration file for the supervisor daemon that will be used
 # to manage the various ipython processes 
 
-# TODO: move this to a dedicated state file and make it possible to install
-# supervisor from pip (maybe in a venv) to be able to get the latest version
-# that supports the `stopasgroup` directive for stopping ipython cluster
-# engine
+{{ ipython_home }}/supervisor/conf.d:
+    file.directory:
+        - makedirs: True
 
-/etc/supervisor/supervisord.conf:
-    file:
-        - managed
+{{ ipython_home }}/supervisor/supervisord.conf:
+    file.managed:
         - source: salt://ipcluster/etc/supervisor/supervisord.conf
-        - user: root
-        - group: root
+        - user: {{ ipython_user }}
+        - group: {{ ipython_user }}
+        - makedirs: True
         - require:
-            - pkg: supervisor
-
-# if supervisor has been upragraded it might not find debian config by default
-
-/etc/supervisord.conf:
-    file.symlink:
-        - target: /etc/supervisor/supervisord.conf
-        - require:
-            - file: /etc/supervisor/supervisord.conf
-            - pkg: supervisor
-
-supervisor:
-    service:
-        - running
-        - require:
-            - file: /etc/supervisor/supervisord.conf
-            - file: /etc/supervisord.conf
-            - pkg: supervisor
+            - file: {{ ipython_home }}/supervisor/conf.d
