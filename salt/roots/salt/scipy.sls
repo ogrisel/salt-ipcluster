@@ -5,3 +5,14 @@ scipy-stack-packages:
             - python-numpy
             - python-scipy
             - python-matplotlib
+            - python-opencv
+
+
+machine-learning-package:
+    pip:
+        - installed
+        - names:
+            - scikit-learn
+            - pyrallel
+        - require:
+            - pkg: python-numpy

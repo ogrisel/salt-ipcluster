@@ -7,6 +7,7 @@
 ipcluster-user:
     user.present:
         - name: {{ ipython_user }}
+        - group: {{ ipython_user }}
         - home: {{ ipython_home }}
         - shell: /bin/bash
 
@@ -23,6 +24,7 @@ ipcluster-packages:
             - python-pip
             - python-virtualenv
             - libzmq-dev
+            - git
 
 # Install ipython from pip in a dedicated venv
 
@@ -56,23 +58,34 @@ ipython:
     pip:
         - installed
         - names:
+{% if not pillar.get('ipcluster.venv.packages') %}
             - ipython
             - pyzmq
             - tornado
+            - jinja2
+            - msgpack-python
+{% endif %}
+{% for pip_pkg in pillar.get('ipcluster.venv.packages', ()) %}
+            - {{ pip_pkg }}
+{% endfor %}
         - bin_env: {{ ipython_home }}/venv
         - user: {{ ipython_user }}
         - require:
             - pkg: build-essential
+            - pkg: git
             - pkg: python-pip
             - pkg: libzmq-dev
             - pkg: python-dev
             - virtualenv: {{ ipython_home }}/venv
 
-# TODO: if pillar has a requirement file, add it here
-
 
 # Main configuration file for the supervisor service that will be used
 # to manage the various ipython processes 
+
+# TODO: move this to a dedicated state file and make it possible to install
+# supervisor from pip (maybe in a venv) to be able to get the latest version
+# that supports the `stopasgroup` directive for stopping ipython cluster
+# engine
 
 /etc/supervisor/supervisord.conf:
     file:
@@ -83,9 +96,19 @@ ipython:
         - require:
             - pkg: supervisor
 
+# if supervisor has been upragraded it might not find debian config by default
+
+/etc/supervisord.conf:
+    file.symlink:
+        - target: /etc/supervisor/supervisord.conf
+        - require:
+            - file: /etc/supervisor/supervisord.conf
+            - pkg: supervisor
+
 supervisor:
     service:
         - running
         - require:
             - file: /etc/supervisor/supervisord.conf
+            - file: /etc/supervisord.conf
             - pkg: supervisor
