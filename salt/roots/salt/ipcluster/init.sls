@@ -41,7 +41,7 @@ ipcluster-system-packages:
         # Make it possible to reuse scipy from the OS packages as it is too
         # costly to build from source and requires many build dependencies as a
         # fortran compiler for instance
-        - no_site_packages: False
+        - system_site_packages: True
         - ignore_installed: True
         - distribute: True
         - runas: {{ ipython_user }}
