@@ -20,7 +20,6 @@ ipcluster-system-packages:
         - names:
             - build-essential
             - python-dev
-            - supervisor
             - python-psutil
             - python-pip
             - python-virtualenv
