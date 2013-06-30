@@ -130,7 +130,10 @@ ipcluster-venv-packages:
 
 supervisor-ipcluster:
     service.running:
+        - reload: True
         - require:
             - file: /etc/init.d/supervisor-ipcluster
             - file: {{ ipython_home }}/supervisor/supervisord.conf
             - pip: ipcluster-venv-packages
+        - watch:
+            - file: {{ ipython_home }}/supervisor/conf.d/*
